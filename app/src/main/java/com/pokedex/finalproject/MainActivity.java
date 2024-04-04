@@ -2,7 +2,12 @@ package com.pokedex.finalproject;
 
 import android.content.Intent;
 import android.os.Bundle;
+
+import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -10,11 +15,13 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Start PokemonDetailsActivity
-        Intent intent = new Intent(MainActivity.this, PokemonDetailsActivity.class);
-        startActivity(intent);
+        setContentView(R.layout.activity_main);
 
-        // Finish MainActivity so it doesn't stay in the back stack
-        finish();
+//        // Start PokemonDetailsActivity
+//        Intent intent = new Intent(MainActivity.this, PokemonDetailsActivity.class);
+//        startActivity(intent);
+//
+//        // Finish MainActivity so it doesn't stay in the back stack
+//        finish();
     }
 }

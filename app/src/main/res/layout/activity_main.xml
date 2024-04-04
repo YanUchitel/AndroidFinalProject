@@ -1,55 +1,54 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:outlineProvider="none"
     android:padding="16dp">
 
-<<<<<<< HEAD
     <androidx.cardview.widget.CardView
-        android:layout_width="360dp"
-        android:layout_height="45dp"
-        android:layout_marginTop="44dp"
-        app:cardCornerRadius="8dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.484"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:outlineProvider="none"
+        app:cardCornerRadius="25dp"
+        app:cardElevation="50dp">
 
-        <SearchView
-            android:id="@+id/searchBar"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:iconifiedByDefault="false"
-            android:queryHint="Search for a Pokemon...">
+<!--        <SearchView-->
+<!--            android:id="@+id/SearchBar"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:iconifiedByDefault="false"-->
+<!--            android:queryHint="Search for a pokemon...">-->
 
-        </SearchView>
+<!--        </SearchView>-->
     </androidx.cardview.widget.CardView>
-=======
+
     <TextView
         android:id="@+id/nameTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Name:"
         android:textSize="18sp"
-        android:textStyle="bold"/>
->>>>>>> origin/master
+        android:textStyle="bold" />
 
     <TextView
         android:id="@+id/weightTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/nameTextView"
+        android:layout_marginTop="0dp"
         android:text="Weight:"
         android:textSize="18sp"
-        android:textStyle="bold"/>
+        android:textStyle="bold" />
 
     <TextView
         android:id="@+id/heightTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/weightTextView"
+        android:layout_marginTop="0dp"
         android:text="Height:"
         android:textSize="18sp"
-        android:textStyle="bold"/>
+        android:textStyle="bold" />
 
 </RelativeLayout>
