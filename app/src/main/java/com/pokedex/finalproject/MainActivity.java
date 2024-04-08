@@ -1,8 +1,10 @@
 package com.pokedex.finalproject;
 
-import android.annotation.SuppressLint;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -16,8 +18,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
+import android.widget.ImageView;
+import com.squareup.picasso.Picasso;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -25,36 +27,69 @@ public class MainActivity extends AppCompatActivity {
     private TextView weightTextView;
     private TextView heightTextView;
     private TextView typeTextView;
+    private ImageView spriteImageView;
+    private ProgressBar progressBar;
+    private Button loadMoreButton;
+
+    private int currentPokemonId = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Initialize TextViews
+        // Initialize views
         nameTextView = findViewById(R.id.nameTextView);
         weightTextView = findViewById(R.id.weightTextView);
         heightTextView = findViewById(R.id.heightTextView);
         typeTextView = findViewById(R.id.typeTextView);
+        spriteImageView = findViewById(R.id.spriteImageView);
+        progressBar = findViewById(R.id.progressBar);
+        loadMoreButton = findViewById(R.id.loadMoreButton);
 
-        // Execute AsyncTask to fetch data from PokeAPI
-        new FetchPokemonDataTask().execute();
+        // Initially hide the progress bar
+        progressBar.setVisibility(View.GONE);
+
+        // Set click listener for the load more button
+        loadMoreButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Fetch data for the next Pokemon
+                fetchPokemonData();
+            }
+        });
+
+        // Fetch data for the first Pokemon
+        fetchPokemonData();
     }
 
-    private class FetchPokemonDataTask extends AsyncTask<Void, Void, String> {
+    private void fetchPokemonData() {
+        new FetchPokemonDataTask().execute(currentPokemonId);
+    }
+
+    private class FetchPokemonDataTask extends AsyncTask<Integer, Void, String> {
 
         @Override
-        protected String doInBackground(Void... voids) {
+        protected void onPreExecute() {
+            super.onPreExecute();
+            // Show the progress bar when fetching data
+            progressBar.setVisibility(View.VISIBLE);
+            // Disable the load more button to prevent multiple clicks
+            loadMoreButton.setEnabled(false);
+        }
+
+        @Override
+        protected String doInBackground(Integer... params) {
+            int pokemonId = params[0];
             HttpURLConnection connection = null;
             BufferedReader reader = null;
             String pokemonDataJsonString = null;
 
             try {
-                URL url = new URL("https://pokeapi.co/api/v2/pokemon/1");
+                URL url = new URL("https://pokeapi.co/api/v2/pokemon/" + pokemonId);
                 connection = (HttpURLConnection) url.openConnection();
                 connection.connect();
 
-                // Read the input stream into a String
                 StringBuilder buffer = new StringBuilder();
                 reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
                 String line;
@@ -87,35 +122,46 @@ public class MainActivity extends AppCompatActivity {
 
             if (pokemonDataJsonString != null) {
                 try {
-                    // Parse the JSON response
                     JSONObject pokemonDataJson = new JSONObject(pokemonDataJsonString);
-
-                    // Extract desired values from the JSON object
-                    String name = capitalizeFirstLetter(pokemonDataJson.getString("name"));
-                    int weight = pokemonDataJson.getInt("weight");
-                    int height = pokemonDataJson.getInt("height");
-
-                    // Get the "types" array
-                    JSONArray typesArray = pokemonDataJson.getJSONArray("types");
-
-                    // Get the first item from the array
-                    JSONObject firstType = typesArray.getJSONObject(0);
-
-                    // Get the "type" object within the first item
-                    JSONObject typeObject = firstType.getJSONObject("type");
-
-                    // Get the "name" field from the type object
-                    String firstTypeName = capitalizeFirstLetter(typeObject.getString("name"));
-
-                    // Update TextViews with Pokemon data
-                    nameTextView.setText(getString(R.string.name_format, name));
-                    typeTextView.setText(getString(R.string.type_format, firstTypeName));
-                    weightTextView.setText(getString(R.string.weight_format, weight));
-                    heightTextView.setText(getString(R.string.height_format, height));
+                    displayPokemonData(pokemonDataJson);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
             }
+
+            // Increment currentPokemonId for the next Pokemon
+            currentPokemonId++;
+
+            // Hide the progress bar after data is fetched
+            progressBar.setVisibility(View.GONE);
+            // Enable the load more button
+            loadMoreButton.setEnabled(true);
+        }
+
+        private void displayPokemonData(JSONObject pokemonDataJson) throws JSONException {
+            // Extract desired values from the JSON object
+            String name = capitalizeFirstLetter(pokemonDataJson.getString("name"));
+            int weight = pokemonDataJson.getInt("weight");
+            int height = pokemonDataJson.getInt("height");
+
+            JSONArray typesArray = pokemonDataJson.getJSONArray("types");
+            JSONObject firstType = typesArray.getJSONObject(0);
+            JSONObject typeObject = firstType.getJSONObject("type");
+            String firstTypeName = capitalizeFirstLetter(typeObject.getString("name"));
+
+            // Update TextViews with Pokemon data
+            nameTextView.setText(getString(R.string.name_format, name));
+            typeTextView.setText(getString(R.string.type_format, firstTypeName));
+            weightTextView.setText(getString(R.string.weight_format, weight));
+            heightTextView.setText(getString(R.string.height_format, height));
+
+            // Retrieve the URL for the front_default sprite
+            JSONObject spritesObject = pokemonDataJson.getJSONObject("sprites");
+            String frontDefaultUrl = spritesObject.getString("front_default");
+
+            // Load the sprite into the ImageView using a library like Picasso or Glide
+            // Here, I'll demonstrate using Picasso
+            Picasso.get().load(frontDefaultUrl).into(spriteImageView);
         }
 
         private String capitalizeFirstLetter(String name) {
@@ -126,5 +172,4 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 }
-
 

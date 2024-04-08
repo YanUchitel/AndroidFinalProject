@@ -12,7 +12,7 @@ public class Pokemon {
     }
 
     public void setType(String type) {
-        this.name = type;
+        this.type = type; // Corrected from this.name = type;
     }
 
     public void setWeight(int weight) {
@@ -26,6 +26,7 @@ public class Pokemon {
     public String getName() {
         return name;
     }
+
     public String getType() {
         return type;
     }
