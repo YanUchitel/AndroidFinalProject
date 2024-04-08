@@ -7,8 +7,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.TextView;
+import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.text.Html;
 
 import androidx.annotation.NonNull;
@@ -47,9 +48,6 @@ public class MainActivity extends AppCompatActivity {
         adapter = new PokemonAdapter(pokemonList);
         recyclerView.setAdapter(adapter);
 
-        // Fetch data for the first Pokemon
-        fetchPokemonData();
-
         // Setup click listener for the "Load More" button
         Button loadMoreButton = findViewById(R.id.loadMoreButton);
         loadMoreButton.setOnClickListener(new View.OnClickListener() {
@@ -59,29 +57,51 @@ public class MainActivity extends AppCompatActivity {
                 fetchPokemonData();
             }
         });
+
+        // Setup click listener for the "Search" button
+        Button searchButton = findViewById(R.id.searchButton);
+        searchButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                EditText searchEditText = findViewById(R.id.searchEditText);
+                String searchTerm = searchEditText.getText().toString().trim();
+
+                if (!searchTerm.isEmpty()) {
+                    // Clear previous search results
+                    pokemonList.clear();
+                    adapter.notifyDataSetChanged();
+
+                    // Fetch data for the searched Pokémon
+                    new FetchPokemonDataTask().execute(searchTerm);
+                }
+            }
+        });
+
+        // Fetch data for the first Pokemon
+        fetchPokemonData();
     }
 
     private void fetchPokemonData() {
         // Fetch data for 3 Pokémon starting from currentPokemonId
         int numPokemonToFetch = 4;
         for (int i = 0; i < numPokemonToFetch; i++) {
-            new FetchPokemonDataTask().execute(currentPokemonId + i);
+            new FetchPokemonDataTask().execute(String.valueOf(currentPokemonId + i));
         }
         // Increment currentPokemonId for the next set of Pokémon
         currentPokemonId += numPokemonToFetch;
     }
 
-    private class FetchPokemonDataTask extends AsyncTask<Integer, Void, String> {
+    private class FetchPokemonDataTask extends AsyncTask<String, Void, String> {
 
         @Override
-        protected String doInBackground(Integer... params) {
-            int pokemonId = params[0];
+        protected String doInBackground(String... params) {
+            String searchTerm = params[0];
             HttpURLConnection connection = null;
             BufferedReader reader = null;
             String pokemonDataJsonString = null;
 
             try {
-                URL url = new URL("https://pokeapi.co/api/v2/pokemon/" + pokemonId);
+                URL url = new URL("https://pokeapi.co/api/v2/pokemon/" + searchTerm.toLowerCase());
                 connection = (HttpURLConnection) url.openConnection();
                 connection.connect();
 
