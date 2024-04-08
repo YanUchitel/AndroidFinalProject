@@ -4,5 +4,4 @@
     <string name="type_format">Type: %d</string>
     <string name="weight_format">Weight: %d</string>
     <string name="height_format">Height: %d</string>
-
 </resources>

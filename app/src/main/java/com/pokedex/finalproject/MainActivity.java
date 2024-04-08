@@ -6,6 +6,7 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -14,12 +15,15 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
     private TextView nameTextView;
     private TextView weightTextView;
-    //private TextView heightTextView;
+    private TextView heightTextView;
+    //private TextView typeTextView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,7 +33,8 @@ public class MainActivity extends AppCompatActivity {
         // Initialize TextViews
         nameTextView = findViewById(R.id.nameTextView);
         weightTextView = findViewById(R.id.weightTextView);
-        //heightTextView = findViewById(R.id.heightTextView);
+        heightTextView = findViewById(R.id.heightTextView);
+        //typeTextView = findViewById(R.id.typeTextView);
 
         // Execute AsyncTask to fetch data from PokeAPI
         new FetchPokemonDataTask().execute();
@@ -85,19 +90,52 @@ public class MainActivity extends AppCompatActivity {
                     JSONObject pokemonDataJson = new JSONObject(pokemonDataJsonString);
 
                     // Extract desired values from the JSON object
-                    String name = pokemonDataJson.getString("name");
+                    String name = capitalizeFirstLetter(pokemonDataJson.getString("name"));
                     int weight = pokemonDataJson.getInt("weight");
                     int height = pokemonDataJson.getInt("height");
+                    List<String> types = getTypes(pokemonDataJson.getJSONArray("types"));
 
                     // Update TextViews with Pokemon data
                     nameTextView.setText(getString(R.string.name_format, name));
                     weightTextView.setText(getString(R.string.weight_format, weight));
-                    //heightTextView.setText(getString(R.string.height_format, height));
+                    heightTextView.setText(getString(R.string.height_format, height));
+                    //typeTextView.setText(getString(R.string.type_format, new Object[]{formatTypes(types)}));
 
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
             }
         }
+
+        private List<String> getTypes(JSONArray typesArray) throws JSONException {
+            List<String> types = new ArrayList<>();
+            for (int i = 0; i < typesArray.length(); i++) {
+                JSONObject typeObject = typesArray.getJSONObject(i).getJSONObject("type");
+                String typeName = typeObject.getString("name");
+                types.add(typeName.toUpperCase());
+            }
+            return types;
+        }
+
+        private String formatTypes(List<String> types) {
+            StringBuilder formattedTypes = new StringBuilder();
+            for (String type : types) {
+                formattedTypes.append(type).append(", ");
+            }
+            // Remove the trailing comma and space
+            if (formattedTypes.length() > 0) {
+                formattedTypes.setLength(formattedTypes.length() - 2);
+            }
+            return formattedTypes.toString();
+        }
+
+        private String capitalizeFirstLetter(String name) {
+            if (name == null || name.isEmpty()) {
+                return name;
+            }
+            return name.substring(0, 1).toUpperCase() + name.substring(1);
+        }
     }
 }
+
+
