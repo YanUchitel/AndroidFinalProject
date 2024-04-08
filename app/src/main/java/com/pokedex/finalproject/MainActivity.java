@@ -73,6 +73,13 @@ public class MainActivity extends AppCompatActivity {
 
                     // Fetch data for the searched Pokémon
                     new FetchPokemonDataTask().execute(searchTerm);
+                } else {
+                    // Reset the screen to display the initial Pokémon
+                    pokemonList.clear(); // Clear the current list
+                    adapter.notifyDataSetChanged(); // Notify the adapter of the change
+
+                    // Fetch data for the first Pokémon
+                    fetchPokemonData();
                 }
             }
         });
