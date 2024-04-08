@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.ImageView;
+import android.text.Html;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -62,12 +63,12 @@ public class MainActivity extends AppCompatActivity {
 
     private void fetchPokemonData() {
         // Fetch data for 3 Pokémon starting from currentPokemonId
-        int numPokemonsToFetch = 4;
-        for (int i = 0; i < numPokemonsToFetch; i++) {
+        int numPokemonToFetch = 4;
+        for (int i = 0; i < numPokemonToFetch; i++) {
             new FetchPokemonDataTask().execute(currentPokemonId + i);
         }
         // Increment currentPokemonId for the next set of Pokémon
-        currentPokemonId += numPokemonsToFetch;
+        currentPokemonId += numPokemonToFetch;
     }
 
     private class FetchPokemonDataTask extends AsyncTask<Integer, Void, String> {
@@ -193,10 +194,16 @@ public class MainActivity extends AppCompatActivity {
             }
 
             void bind(Pokemon pokemon) {
-                nameTextView.setText(pokemon.getName());
-                typeTextView.setText(pokemon.getType());
-                weightTextView.setText(String.valueOf(pokemon.getWeight()));
-                heightTextView.setText(String.valueOf(pokemon.getHeight()));
+                // Format and set the text using strings from strings.xml with HTML formatting
+                String name = "<b>" + itemView.getContext().getString(R.string.name_format, pokemon.getName()) + "</b>";
+                String type = "<b>" + itemView.getContext().getString(R.string.type_format) + "</b> " + pokemon.getType();
+                String weight = "<b>" + itemView.getContext().getString(R.string.weight_format) + "</b> " + pokemon.getWeight();
+                String height = "<b>" + itemView.getContext().getString(R.string.height_format) + "</b> " + pokemon.getHeight();
+
+                nameTextView.setText(Html.fromHtml(name));
+                typeTextView.setText(Html.fromHtml(type));
+                weightTextView.setText(Html.fromHtml(weight));
+                heightTextView.setText(Html.fromHtml(height));
                 Picasso.get().load(pokemon.getImageUrl()).into(spriteImageView);
             }
         }

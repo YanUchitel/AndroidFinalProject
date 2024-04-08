@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Pokedex</string>
-    <string name="name_format">Name: %s</string>
-    <string name="type_format">Type: %s</string>
-    <string name="weight_format">Weight: %d</string>
-    <string name="height_format">Height: %d</string>
+    <string name="name_format">%s</string>
+    <string name="type_format">Type:</string>
+    <string name="weight_format">Weight:</string>
+    <string name="height_format">Height:</string>
 </resources>
