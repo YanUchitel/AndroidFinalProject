@@ -1,5 +1,6 @@
 package com.pokedex.finalproject;
 
+import android.annotation.SuppressLint;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.widget.TextView;
@@ -23,7 +24,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView nameTextView;
     private TextView weightTextView;
     private TextView heightTextView;
-    //private TextView typeTextView;
+    private TextView typeTextView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,7 +35,7 @@ public class MainActivity extends AppCompatActivity {
         nameTextView = findViewById(R.id.nameTextView);
         weightTextView = findViewById(R.id.weightTextView);
         heightTextView = findViewById(R.id.heightTextView);
-        //typeTextView = findViewById(R.id.typeTextView);
+        typeTextView = findViewById(R.id.typeTextView);
 
         // Execute AsyncTask to fetch data from PokeAPI
         new FetchPokemonDataTask().execute();
@@ -93,40 +94,28 @@ public class MainActivity extends AppCompatActivity {
                     String name = capitalizeFirstLetter(pokemonDataJson.getString("name"));
                     int weight = pokemonDataJson.getInt("weight");
                     int height = pokemonDataJson.getInt("height");
-                    List<String> types = getTypes(pokemonDataJson.getJSONArray("types"));
+
+                    // Get the "types" array
+                    JSONArray typesArray = pokemonDataJson.getJSONArray("types");
+
+                    // Get the first item from the array
+                    JSONObject firstType = typesArray.getJSONObject(0);
+
+                    // Get the "type" object within the first item
+                    JSONObject typeObject = firstType.getJSONObject("type");
+
+                    // Get the "name" field from the type object
+                    String firstTypeName = capitalizeFirstLetter(typeObject.getString("name"));
 
                     // Update TextViews with Pokemon data
                     nameTextView.setText(getString(R.string.name_format, name));
+                    typeTextView.setText(getString(R.string.type_format, firstTypeName));
                     weightTextView.setText(getString(R.string.weight_format, weight));
                     heightTextView.setText(getString(R.string.height_format, height));
-                    //typeTextView.setText(getString(R.string.type_format, new Object[]{formatTypes(types)}));
-
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
             }
-        }
-
-        private List<String> getTypes(JSONArray typesArray) throws JSONException {
-            List<String> types = new ArrayList<>();
-            for (int i = 0; i < typesArray.length(); i++) {
-                JSONObject typeObject = typesArray.getJSONObject(i).getJSONObject("type");
-                String typeName = typeObject.getString("name");
-                types.add(typeName.toUpperCase());
-            }
-            return types;
-        }
-
-        private String formatTypes(List<String> types) {
-            StringBuilder formattedTypes = new StringBuilder();
-            for (String type : types) {
-                formattedTypes.append(type).append(", ");
-            }
-            // Remove the trailing comma and space
-            if (formattedTypes.length() > 0) {
-                formattedTypes.setLength(formattedTypes.length() - 2);
-            }
-            return formattedTypes.toString();
         }
 
         private String capitalizeFirstLetter(String name) {
