@@ -1,13 +1,21 @@
 package com.pokedex.finalproject;
 
+import android.annotation.SuppressLint;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.ImageView;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -18,19 +26,14 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import android.widget.ImageView;
-import com.squareup.picasso.Picasso;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-    private TextView nameTextView;
-    private TextView weightTextView;
-    private TextView heightTextView;
-    private TextView typeTextView;
-    private ImageView spriteImageView;
-    private ProgressBar progressBar;
-    private Button loadMoreButton;
-
+    private RecyclerView recyclerView;
+    private PokemonAdapter adapter;
+    private List<Pokemon> pokemonList = new ArrayList<>();
     private int currentPokemonId = 1;
 
     @Override
@@ -38,45 +41,36 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Initialize views
-        nameTextView = findViewById(R.id.nameTextView);
-        weightTextView = findViewById(R.id.weightTextView);
-        heightTextView = findViewById(R.id.heightTextView);
-        typeTextView = findViewById(R.id.typeTextView);
-        spriteImageView = findViewById(R.id.spriteImageView);
-        progressBar = findViewById(R.id.progressBar);
-        loadMoreButton = findViewById(R.id.loadMoreButton);
-
-        // Initially hide the progress bar
-        progressBar.setVisibility(View.GONE);
-
-        // Set click listener for the load more button
-        loadMoreButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Fetch data for the next Pokemon
-                fetchPokemonData();
-            }
-        });
+        recyclerView = findViewById(R.id.recyclerView);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        adapter = new PokemonAdapter(pokemonList);
+        recyclerView.setAdapter(adapter);
 
         // Fetch data for the first Pokemon
         fetchPokemonData();
+
+        // Setup click listener for the "Load More" button
+        Button loadMoreButton = findViewById(R.id.loadMoreButton);
+        loadMoreButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Load more Pokemon data
+                fetchPokemonData();
+            }
+        });
     }
 
     private void fetchPokemonData() {
-        new FetchPokemonDataTask().execute(currentPokemonId);
+        // Fetch data for 3 Pokémon starting from currentPokemonId
+        int numPokemonsToFetch = 4;
+        for (int i = 0; i < numPokemonsToFetch; i++) {
+            new FetchPokemonDataTask().execute(currentPokemonId + i);
+        }
+        // Increment currentPokemonId for the next set of Pokémon
+        currentPokemonId += numPokemonsToFetch;
     }
 
     private class FetchPokemonDataTask extends AsyncTask<Integer, Void, String> {
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            // Show the progress bar when fetching data
-            progressBar.setVisibility(View.VISIBLE);
-            // Disable the load more button to prevent multiple clicks
-            loadMoreButton.setEnabled(false);
-        }
 
         @Override
         protected String doInBackground(Integer... params) {
@@ -123,23 +117,16 @@ public class MainActivity extends AppCompatActivity {
             if (pokemonDataJsonString != null) {
                 try {
                     JSONObject pokemonDataJson = new JSONObject(pokemonDataJsonString);
-                    displayPokemonData(pokemonDataJson);
+                    Pokemon pokemon = parsePokemonData(pokemonDataJson);
+                    pokemonList.add(pokemon);
+                    adapter.notifyDataSetChanged();
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
             }
-
-            // Increment currentPokemonId for the next Pokemon
-            currentPokemonId++;
-
-            // Hide the progress bar after data is fetched
-            progressBar.setVisibility(View.GONE);
-            // Enable the load more button
-            loadMoreButton.setEnabled(true);
         }
 
-        private void displayPokemonData(JSONObject pokemonDataJson) throws JSONException {
-            // Extract desired values from the JSON object
+        private Pokemon parsePokemonData(JSONObject pokemonDataJson) throws JSONException {
             String name = capitalizeFirstLetter(pokemonDataJson.getString("name"));
             int weight = pokemonDataJson.getInt("weight");
             int height = pokemonDataJson.getInt("height");
@@ -149,19 +136,10 @@ public class MainActivity extends AppCompatActivity {
             JSONObject typeObject = firstType.getJSONObject("type");
             String firstTypeName = capitalizeFirstLetter(typeObject.getString("name"));
 
-            // Update TextViews with Pokemon data
-            nameTextView.setText(getString(R.string.name_format, name));
-            typeTextView.setText(getString(R.string.type_format, firstTypeName));
-            weightTextView.setText(getString(R.string.weight_format, weight));
-            heightTextView.setText(getString(R.string.height_format, height));
-
-            // Retrieve the URL for the front_default sprite
             JSONObject spritesObject = pokemonDataJson.getJSONObject("sprites");
             String frontDefaultUrl = spritesObject.getString("front_default");
 
-            // Load the sprite into the ImageView using a library like Picasso or Glide
-            // Here, I'll demonstrate using Picasso
-            Picasso.get().load(frontDefaultUrl).into(spriteImageView);
+            return new Pokemon(name, firstTypeName, weight, height, frontDefaultUrl);
         }
 
         private String capitalizeFirstLetter(String name) {
@@ -171,5 +149,56 @@ public class MainActivity extends AppCompatActivity {
             return name.substring(0, 1).toUpperCase() + name.substring(1);
         }
     }
-}
 
+    private static class PokemonAdapter extends RecyclerView.Adapter<PokemonAdapter.PokemonViewHolder> {
+        private List<Pokemon> pokemonList;
+
+        PokemonAdapter(List<Pokemon> pokemonList) {
+            this.pokemonList = pokemonList;
+        }
+
+        @NonNull
+        @Override
+        public PokemonViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.pokemon_card_layout, parent, false);
+            return new PokemonViewHolder(view);
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull PokemonViewHolder holder, int position) {
+            Pokemon pokemon = pokemonList.get(position);
+            holder.bind(pokemon);
+        }
+
+        @Override
+        public int getItemCount() {
+            return pokemonList.size();
+        }
+
+        static class PokemonViewHolder extends RecyclerView.ViewHolder {
+            private TextView nameTextView;
+            private TextView typeTextView;
+            private TextView weightTextView;
+            private TextView heightTextView;
+            private final ImageView spriteImageView;
+
+            @SuppressLint("WrongViewCast")
+            PokemonViewHolder(@NonNull View itemView) {
+                super(itemView);
+                nameTextView = itemView.findViewById(R.id.nameTextView);
+                typeTextView = itemView.findViewById(R.id.typeTextView);
+                weightTextView = itemView.findViewById(R.id.weightTextView);
+                heightTextView = itemView.findViewById(R.id.heightTextView);
+                spriteImageView = itemView.findViewById(R.id.spriteImageView);
+            }
+
+            void bind(Pokemon pokemon) {
+                nameTextView.setText(pokemon.getName());
+                typeTextView.setText(pokemon.getType());
+                weightTextView.setText(String.valueOf(pokemon.getWeight()));
+                heightTextView.setText(String.valueOf(pokemon.getHeight()));
+                Picasso.get().load(pokemon.getImageUrl()).into(spriteImageView);
+            }
+        }
+    }
+}

@@ -1,26 +1,18 @@
 package com.pokedex.finalproject;
 
 public class Pokemon {
-    private int id;
     private String name;
     private String type;
-    private int height;
     private int weight;
+    private int height;
+    private String imageUrl;
 
-    public void setName(String name) {
+    public Pokemon(String name, String type, int weight, int height, String imageUrl) {
         this.name = name;
-    }
-
-    public void setType(String type) {
-        this.type = type; // Corrected from this.name = type;
-    }
-
-    public void setWeight(int weight) {
+        this.type = type;
         this.weight = weight;
-    }
-
-    public void setHeight(int height) {
         this.height = height;
+        this.imageUrl = imageUrl;
     }
 
     public String getName() {
@@ -37,5 +29,9 @@ public class Pokemon {
 
     public int getHeight() {
         return height;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
     }
 }
