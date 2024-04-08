@@ -43,6 +43,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // Initialize RecyclerView and adapter
         recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         adapter = new PokemonAdapter(pokemonList);
@@ -88,6 +89,7 @@ public class MainActivity extends AppCompatActivity {
         fetchPokemonData();
     }
 
+    // Method to fetch Pokemon data
     private void fetchPokemonData() {
         // Fetch data for 3 Pokémon starting from currentPokemonId
         int numPokemonToFetch = 4;
@@ -98,6 +100,7 @@ public class MainActivity extends AppCompatActivity {
         currentPokemonId += numPokemonToFetch;
     }
 
+    // AsyncTask to fetch Pokemon data from API
     private class FetchPokemonDataTask extends AsyncTask<String, Void, String> {
 
         @Override
@@ -108,10 +111,12 @@ public class MainActivity extends AppCompatActivity {
             String pokemonDataJsonString = null;
 
             try {
+                // Create URL for API request
                 URL url = new URL("https://pokeapi.co/api/v2/pokemon/" + searchTerm.toLowerCase());
                 connection = (HttpURLConnection) url.openConnection();
                 connection.connect();
 
+                // Read response from API
                 StringBuilder buffer = new StringBuilder();
                 reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
                 String line;
@@ -119,10 +124,12 @@ public class MainActivity extends AppCompatActivity {
                     buffer.append(line).append("\n");
                 }
 
+                // Store API response
                 pokemonDataJsonString = buffer.toString();
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {
+                // Close connection and reader
                 if (connection != null) {
                     connection.disconnect();
                 }
@@ -144,8 +151,11 @@ public class MainActivity extends AppCompatActivity {
 
             if (pokemonDataJsonString != null) {
                 try {
+                    // Parse JSON data and create Pokemon object
                     JSONObject pokemonDataJson = new JSONObject(pokemonDataJsonString);
                     Pokemon pokemon = parsePokemonData(pokemonDataJson);
+
+                    // Add Pokemon to the list and notify adapter
                     pokemonList.add(pokemon);
                     adapter.notifyDataSetChanged();
                 } catch (JSONException e) {
@@ -154,6 +164,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
+        // Method to parse JSON data and create Pokemon object
         private Pokemon parsePokemonData(JSONObject pokemonDataJson) throws JSONException {
             String name = capitalizeFirstLetter(pokemonDataJson.getString("name"));
             int weight = pokemonDataJson.getInt("weight");
@@ -170,6 +181,7 @@ public class MainActivity extends AppCompatActivity {
             return new Pokemon(name, firstTypeName, weight, height, frontDefaultUrl);
         }
 
+        // Method to capitalize first letter of a string
         private String capitalizeFirstLetter(String name) {
             if (name == null || name.isEmpty()) {
                 return name;
@@ -178,6 +190,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    // Adapter class for RecyclerView
     private static class PokemonAdapter extends RecyclerView.Adapter<PokemonAdapter.PokemonViewHolder> {
         private List<Pokemon> pokemonList;
 
@@ -188,21 +201,25 @@ public class MainActivity extends AppCompatActivity {
         @NonNull
         @Override
         public PokemonViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            // Inflate layout for each item in RecyclerView
             View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.pokemon_card_layout, parent, false);
             return new PokemonViewHolder(view);
         }
 
         @Override
         public void onBindViewHolder(@NonNull PokemonViewHolder holder, int position) {
+            // Bind data to ViewHolder
             Pokemon pokemon = pokemonList.get(position);
             holder.bind(pokemon);
         }
 
         @Override
         public int getItemCount() {
+            // Return number of items in the list
             return pokemonList.size();
         }
 
+        // ViewHolder class to hold views for each item in RecyclerView
         static class PokemonViewHolder extends RecyclerView.ViewHolder {
             private TextView nameTextView;
             private TextView typeTextView;
@@ -213,6 +230,7 @@ public class MainActivity extends AppCompatActivity {
             @SuppressLint("WrongViewCast")
             PokemonViewHolder(@NonNull View itemView) {
                 super(itemView);
+                // Initialize views
                 nameTextView = itemView.findViewById(R.id.nameTextView);
                 typeTextView = itemView.findViewById(R.id.typeTextView);
                 weightTextView = itemView.findViewById(R.id.weightTextView);
@@ -220,6 +238,7 @@ public class MainActivity extends AppCompatActivity {
                 spriteImageView = itemView.findViewById(R.id.spriteImageView);
             }
 
+            // Method to bind data to views
             void bind(Pokemon pokemon) {
                 // Format and set the text using strings from strings.xml with HTML formatting
                 String name = "<b>" + itemView.getContext().getString(R.string.name_format, pokemon.getName()) + "</b>";
